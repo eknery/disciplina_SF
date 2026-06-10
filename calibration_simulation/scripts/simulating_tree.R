@@ -6,7 +6,7 @@ if(!require("geiger")) install.packages("geiger"); library("geiger")
 if(!require("simclock")) install.packages("simclock"); library("simclock")
 
 ### output directory
-dir_out = "1_tree/"
+dir_out = "calibration_simulation/1_trees/"
 
 ### simulate true tree
 simulation = trees(
@@ -23,6 +23,7 @@ truetree = simulation[[1]]
 truetree = ladderize(multi2di(truetree))
 ### plot
 plot(truetree, cex= 0.4)
+axisPhylo()
 ### export true tree
 write.tree(truetree, paste0(dir_out,"truetree.nwk") )
 
@@ -30,5 +31,6 @@ write.tree(truetree, paste0(dir_out,"truetree.nwk") )
 livingtree = drop.extinct(truetree)
 ### plot
 plot(livingtree, cex= 0.4)
+axisPhylo()
 ### export true tree
 write.tree(livingtree, paste0(dir_out,"livingtree.nwk") )

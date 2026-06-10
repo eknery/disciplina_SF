@@ -17,6 +17,23 @@ for(i in 1:length(file_names) ){
   names(fasta_list)[i] = gsub(".fasta", "", file_names[i])
 }
 
+############################# SETTING OUTGROUP ###############################
+
+### get tree
+livingtree = read.tree("calibration_simulation/1_trees/livingtree.nwk")
+
+### plotting
+par(mfrow = c(1, 1), mar = c(4, 4, 3, 1))
+plot(livingtree, cex= 0.4)
+nodelabels(
+  # branching.times(livingtree),
+  cex = 0.4
+)
+axisPhylo()
+outgroup = c("sp5","sp31","sp30","sp3","sp2","sp7","sp6","sp12","sp11")
+
+branching.times(livingtree)
+
 ############################## INFERING ML TREE ###############################
 
 ## select output dir
@@ -29,8 +46,12 @@ all_loci = names(fasta_list)
 for(locus_name in all_loci){
   ### pick one aligment
   one_fasta = fasta_list[[locus_name]]
+  ### NJ tree
+  njtree = NJ(dist.ml(one_fasta, "JC69"))
+  ### rooting tree
+  njtree = root(njtree, outgroup)
   ### ML fits
-  ml_fit = optim.pml(pml(NJ(dist.ml(one_fasta)), data = one_fasta), model = "JC")
+  ml_fit = optim.pml(pml(njtree, data = one_fasta), model = "JC")
   ### ML trees
   ml_tree = ml_fit$tree
   ## export trees

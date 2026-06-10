@@ -2,38 +2,47 @@
 if(!require("phangorn")) install.packages("phangorn"); library("phangorn")
 if(!require("seqinr")) install.packages("seqinr"); library("seqinr")
 if(!require("ape")) install.packages("ape"); library("ape")
-if(!require("phylotools")) install.packages("phylotools"); library("phylotools")
 
 ### get tree
-truetree = read.tree("calibration_simulation/1_árvores/truetree.nwk")
+truetree = read.tree("calibration_simulation/1_trees/truetree.nwk")
 
 ### output directory
-dir_out = "calibration_simulation/2_sequências/"
-
-### plot nodes
-plot(truetree, cex= 0.4)
-edgelabels(
-  text = truetree$edge[,2],
-  cex = 0.4
-)
+dir_out = "calibration_simulation/2_sequences/"
 
 ################################ relaxing tree  ################################
 
+### plotting
+par(mfrow = c(1, 1), mar = c(4, 4, 3, 1))
+plot(truetree, cex= 0.4)
+nodelabels(
+  cex = 0.4
+)
+axisPhylo()
+
 ### tree to relax clock rates 
 truetree_rel = truetree
-### exponential clock
-scalers = rexp(n = nrow(truetree$edge), rate = 0.5)
-### modify tree
-truetree_rel$edge.length = truetree_rel$edge.length * scalers
+
+### slow clade
+clade1 = getDescendants(truetree_rel, node = 53)
+truetree_rel$edge.length[truetree_rel$edge[, 2] %in% clade1] = truetree_rel$edge.length[truetree_rel$edge[, 2] %in% clade1] * 1.2
+
+### fast clade
+clade2 = getDescendants(truetree_rel, node = 36)
+truetree_rel$edge.length[truetree_rel$edge[, 2] %in% clade2] = truetree_rel$edge.length[truetree_rel$edge[, 2] %in% clade2] *0.8
 
 ### plotting
 plot(truetree_rel, cex= 0.4)
-write.tree(truetree_rel, paste0("1_tree/truetree_rel.nwk") )
+nodelabels(
+  cex = 0.4
+)
 
-################################# simulating locusA ############################
+### export
+write.tree(truetree_rel, paste0("calibration_simulation/1_trees/truetree_rel.nwk") )
+
+############################## simulating locusA ##############################
 
 ### get tree
-truetree_rel = read.tree("simulando_calibração/1_árvores/truetree_rel.nwk")
+truetree_rel = read.tree("calibration_simulation/1_trees/truetree_rel.nwk")
 
 ### rate matrix
 Q = matrix(
@@ -43,7 +52,7 @@ Q = matrix(
     1, 1, 1, 0),
   nrow = 4, 
   byrow = TRUE,
-  dimnames = list(c("A","T","C","G"), c("A","T","C","G"))
+  dimnames = list(c("a","c","g","t"), c("a","c","g","t"))
 )
 
 ### sequences for each block
@@ -73,9 +82,9 @@ write.dna(
 ### simulating locusB
 locusB = simSeq(
   x = truetree_rel, 
-  l = 500, 
+  l = 1000, 
   Q = Q, 
-  rate = 0.003,
+  rate = 0.002,
   bf = c(0.25,0.25,0.25,0.25),
   ancestral = F
 )
@@ -97,7 +106,7 @@ write.dna(
 ### simulating locusC
 locusCa = simSeq(
   x = truetree_rel, 
-  l = 100, 
+  l = 250, 
   Q = Q, 
   rate = 0.001,
   bf = c(0.25,0.25,0.25,0.25),
@@ -105,15 +114,15 @@ locusCa = simSeq(
 )
 locusCb = simSeq(
   x = truetree_rel, 
-  l = 300, 
+  l = 1000, 
   Q = Q, 
-  rate = 0.003,
+  rate = 0.002,
   bf = c(0.25,0.25,0.25,0.25),
   ancestral = F
 )
 locusCc = simSeq(
   x = truetree_rel, 
-  l = 100, 
+  l = 250, 
   Q = Q, 
   rate = 0.001,
   bf = c(0.25,0.25,0.25,0.25),
@@ -133,3 +142,4 @@ write.dna(
   format = "fasta",
   file = paste0(dir_out, "locusC.fasta")
 )
+
